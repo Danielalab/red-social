@@ -11,7 +11,7 @@ var config = {
 firebase.initializeApp(config);
 
 // inicializar formulario materialize
-$(document).ready(function() {
+$(document).ready(function () {
   $('select').material_select();
   $('.modal').modal();
 
@@ -23,7 +23,7 @@ $(document).ready(function() {
   var $lastName = $('#lastName');
   var $day = $('#day');
   var $año = $('#año');
-  var $passwordCreate = $('#passwordCreate');
+  var $month = $('select');
   var $container = $('#container');
 
   // variables iniciar sesion
@@ -33,108 +33,151 @@ $(document).ready(function() {
 
   // var $clogite.on('click', createNewUsers);
   // $btnLogIn.on('click', logIn);
-  $firstName.on('keyup', validateName);
-  $firstName.on('keyup', validatingNewUsers);
-  $lastName.on('keyup', validateLastName);
-  $lastName.on('keyup', validatingNewUsers);
-  $emailCreate.on('keyup', validateEmail);
-  $emailCreate.on('keyup', validatingNewUsers);
-  $day.on('keyup', validateDay);
-  $day.on('keyup', validatingNewUsers);
-  $año.on('keyup', validateAño);
-  $año.on('keyup', validatingNewUsers);
+  $firstName.on('input', validateName);
+  $lastName.on('input', validateLastName);
+  $emailCreate.on('input', validateEmail);
+  $day.on('input', validateDay);
+  // $año.on('input', validateAño);
+  $month.on('input', validateMonth);
+  $passwordCreate.on('input', validatePassword);
 
-  // $email.on('keyup',validSingUp);
-  // $password.on('keyup',validSingUp);
+  // variables centinelas 
+  var firstName = false;
+  var lastName = false;
+  var password = false;
+  var email = false;
+  var day = false;
+  var month = false;
+  var año = false;
 
+  var regexText = /^[a-zA-Z]*$/;
+  var regexEmail = (/^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:.[a-zA-Z0-9-]+)*$/);
 
   // validando nombre de usuario
   function validateName() {
-    var name = false;
-    var regex = /^[a-zA-Z]*$/;
-    if (regex.test($($firstName).val()) && $firstName.val().length >= 3) {
-      name = true;
-     }
-    return name;
+    if (regexText.test($firstName.val()) && $firstName.val().length >= 3) {
+      console.log('first name valid');
+      firstName = true;
+      allInputsValid($btnCreate);
+    } else {
+      firstName = false;
+      desactiveButton($btnCreate);
+    }
   }
 
   // validando apellidos
   function validateLastName() {
-    var name = false;
-    var regex = /^[a-zA-Z]*$/;
-    if (regex.test($($lastName).val()) && $lastName.val().length >= 3) {
-      name = true;
+    if (regexText.test($lastName.val()) && $lastName.val().length >= 3) {
+      console.log('last name valid');
+      lastName = true;
+      allInputsValid($btnCreate);
+    } else {
+      lastName = false;
+      desactiveButton($btnCreate);
     }
-    return name;
+  }
+
+  // validar password
+  function validatePassword() {
+    if (regexText.test($passwordCreate.val()) && $passwordCreate.val().length >= 6) {
+      console.log('password valid');
+      password = true;
+      allInputsValid($btnCreate);
+    } else {
+      password = false;
+      desactiveButton($btnCreate);
+    }
   }
 
   // validando email
   function validateEmail() {
-    var email = false;
-    var regex = (/^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:.[a-zA-Z0-9-]+)*$/);
-    if (regex.test($($emailCreate).val()) && $emailCreate.val().length > 6) {
+    if (regexEmail.test($emailCreate.val()) && $emailCreate.val().length > 6) {
+      console.log('email valid');
       email = true;
-      localStorage.email = $emailCreate.val();
+      allInputsValid($btnCreate);
+    } else {
+      email = false;
+      desactiveButton($btnCreate);
     }
-    return email;
   }
 
+  // validar day
   function validateDay() {
-    localStorage.password = $passwordCreate.val();
-    return $day.val().length === 2;
+    if ($day.val() >= 0 && $day.val() <= 31) {
+      day = true;
+      allInputsValid($btnCreate);      
+    } else {
+      day = false;
+      desactiveButton($btnCreate);
+    } 
   }
 
-  function validateAño() {
-    return $año.val().length === 4;
-  }
+  // validar mes
 
-  // validando formulario de crear nuevo usuario
-  function validatingNewUsers() {
-    if (validateName() && validateLastName() && validateEmail() && validateDay() && validateAño()) {
-      $btnCreate.removeClass('disabled');
+  function validateMonth() {
+    // console.log($mes.val());
+    alert('entra');
+  }
+  // validar año
+
+  // validar todos los inputs al registrarse un nuevo usuario
+
+  function allInputsValid($btnCreate) {
+    if (firstName && lastName && password && email && day) {
+      console.log('all inputs valid valid');
+      activeButton($btnCreate);
     }
   }
 
+  // desactivar y activar boton
+
+  function desactiveButton(btn) {
+    btn.addClass('disabled');
+  }
+
+  function activeButton(btn) {
+    btn.removeClass('disabled');
+  }
   // crear nuevo usuario con firebase
   function createNewUsers() {
     firebase.auth().createUserWithEmailAndPassword($emailCreate.val(), $passwordCreate.val())
-      .then(function() {
+      .then(function () {
         $btnCreate.removeClass('disabled');
         verifyUsers();
       })
 
-      .catch(function(error) {
-      // Handle Errors here.
-      var errorCode = error.code;
-      var errorMessage = error.message;
-      // ...
-      console.log(errorCode);
-      console.log(errorMessage);
-      alert(errorMessage);
-    });
+      .catch(function (error) {
+        // Handle Errors here.
+        var errorCode = error.code;
+        var errorMessage = error.message;
+        // ...
+        console.log(errorCode);
+        console.log(errorMessage);
+        alert(errorMessage);
+      });
   }
 
 
- // iniciar sesion
+  // iniciar sesion
   function logIn() {
     firebase.auth().signInWithEmailAndPassword($email.val(), $password.val())
-    .catch(function(error) {
-      // Handle Errors here.
-      var errorCode = error.code;
-      var errorMessage = error.message;
-      console.log(errorCode);
-      console.log(errorMessage);
-      alert(errorMessage);
-    });
+      .catch(function (error) {
+        // Handle Errors here.
+        var errorCode = error.code;
+        var errorMessage = error.message;
+        console.log(errorCode);
+        console.log(errorMessage);
+        alert(errorMessage);
+      });
   }
 
   function observer() {
-      firebase.auth().onAuthStateChanged(function(user) {
-        var $photoProfile = $('#photoProfile');
-        var $nameUsers = $('#nameUsers');
-        var $coments = $('#coments');
-        var $usersComent = $('#usersComent');
-        var $dataPhoto = data["anacarlavegam@gmail.com"]["friends"];
+    firebase.auth().onAuthStateChanged(function (user) {
+      var $photoProfile = $('#photoProfile');
+      var $nameUsers = $('#nameUsers');
+      var $coments = $('#coments');
+      var $usersComent = $('#usersComent');
+      var $dataPhoto = data["anacarlavegam@gmail.com"]["friends"];
 
 
       if (user) {
@@ -163,8 +206,8 @@ $(document).ready(function() {
         var $photoFriend = $('#friend');
 
         for (var i = 0; i < Object.keys(data).length; i++) {
-          if (Object.keys(data)[i] === user.email ) {
-            for (var j = 0; j < $dataPhoto.length; j++){
+          if (Object.keys(data)[i] === user.email) {
+            for (var j = 0; j < $dataPhoto.length; j++) {
               $photoFriend.attr('src', $dataPhoto[j].photo);
               $nameFriend.text($dataPhoto[j].name);
             }
@@ -192,14 +235,14 @@ $(document).ready(function() {
     window.location.href = '../views/home.html'
 
     var provider = new firebase.auth.GoogleAuthProvider();
-    firebase.auth().signInWithPopup(provider).then(function(result) {
+    firebase.auth().signInWithPopup(provider).then(function (result) {
       user = result.user;
       console.log(user);
       initApp();
     });
   }
 
- // ***************************validando login con users de Data
+  // ***************************validando login con users de Data
 
 
   function initApp() {
@@ -222,34 +265,34 @@ $(document).ready(function() {
 
   // ****************************funciones para home
   // para agregar amigos
-  $('#btn-add').on('click',function(e){
+  $('#btn-add').on('click', function (e) {
     $('#btn-add').addClass('hide');
     $('#btn-friend').removeClass('hide');
   });
 
 
   // habilitar boton para publicar
-  var $btnPost=$('#btn-text');
-  var $newPost=$('#new-text');
-  $newPost.on('input',function(){
+  var $btnPost = $('#btn-text');
+  var $newPost = $('#new-text');
+  $newPost.on('input', function () {
     $btnPost.attr('disabled', false);
     $btnPost.addClass('btn-grad');
   });
 
   // funcion para agregar publicaciones
-  var ShowPublic = function(e){
-    $btnPost.on('click',function(e){
+  var ShowPublic = function (e) {
+    $btnPost.on('click', function (e) {
       var texto = $newPost.val();
       $newPost.val('');
       observer();
-      $('#publicacion').append('<div id="public-header" class="col s12 m12 white"><div class="col s2 m2 white"><img  id="coments" alt="" class="img-perfil"></div><div id="usersComent" class="col s10 m10 white"><br><span class="grey-text">Publicado a las :'+getTime()+'</span><br></div><div class="col s12 m12 divider"></div></div><div id="public-body" class="col s12 m12 white"><div class="text-public"><p>'+ texto +'</p></div></div><div class="col s12 m12 white"><a><i class="fa fa-thumbs-o-up icon-public" id="icon-like"></i></a><a href="#"><i class="fa fa-edit icon-public"></i></a><a><i class="fa fa-share icon-public"></i></a><p class="right grey-text" id="number-likes"> likes</p><div class="col s12 m12 divider"></div><br><br><div id="add-comment" class="col s12 m12"></div></div>');
+      $('#publicacion').append('<div id="public-header" class="col s12 m12 white"><div class="col s2 m2 white"><img  id="coments" alt="" class="img-perfil"></div><div id="usersComent" class="col s10 m10 white"><br><span class="grey-text">Publicado a las :' + getTime() + '</span><br></div><div class="col s12 m12 divider"></div></div><div id="public-body" class="col s12 m12 white"><div class="text-public"><p>' + texto + '</p></div></div><div class="col s12 m12 white"><a><i class="fa fa-thumbs-o-up icon-public" id="icon-like"></i></a><a href="#"><i class="fa fa-edit icon-public"></i></a><a><i class="fa fa-share icon-public"></i></a><p class="right grey-text" id="number-likes"> likes</p><div class="col s12 m12 divider"></div><br><br><div id="add-comment" class="col s12 m12"></div></div>');
 
       $('#input-comment').removeClass('hide');
       $btnPost.attr('disabled', true);
       $btnPost.removeClass('btn-grad');
     })
   }
-  
+
   ShowPublic();
 
   // Función para agregar hora
@@ -260,30 +303,30 @@ $(document).ready(function() {
     return hh + ':' + ((mm < 10 ? '0' : '') + mm);
   }
   // comentar las publicaciones
-  $('#input-comment, #input-com').keypress(function(event) {
-    if ( event.which == 13 ) {
+  $('#input-comment, #input-com').keypress(function (event) {
+    if (event.which == 13) {
       event.preventDefault();
       // alert("Ha pulsado la tecla enter");
       var comentario = $('#input-comment').val();
-      var comentar=$('#input-com').val();
+      var comentar = $('#input-com').val();
       $('#input-comment').val('');
       $('#input-com').val('');
-      $('#add-comment').append('<div class="col s1 m1"><img src="../assets/images/perfil1.jpg" alt="" class="img-comment"></div> <p class="col s11 m11 ">'+comentario+'<span  class="right grey-text">publicado : '+getTime()+'</span></p>');
-      $('#add-com').append('<div class="col s1 m1"><img src="../assets/images/perfil1.jpg" alt="" class="img-comment"></div> <p class="col s11 m11 ">'+comentar+'<span  class="right grey-text">publicado : '+getTime()+'</span></p>');
+      $('#add-comment').append('<div class="col s1 m1"><img src="../assets/images/perfil1.jpg" alt="" class="img-comment"></div> <p class="col s11 m11 ">' + comentario + '<span  class="right grey-text">publicado : ' + getTime() + '</span></p>');
+      $('#add-com').append('<div class="col s1 m1"><img src="../assets/images/perfil1.jpg" alt="" class="img-comment"></div> <p class="col s11 m11 ">' + comentar + '<span  class="right grey-text">publicado : ' + getTime() + '</span></p>');
     }
   });
 
   // contador para likes
-  $('#icon-like').on('click',function(e){
-    var cont=1;
+  $('#icon-like').on('click', function (e) {
+    var cont = 1;
     $(this).toggleClass('pink-text');
-    $('#contador').html(cont +'like');
+    $('#contador').html(cont + 'like');
     cont++;
   });
 
-  $('#friend-active').on('click',function(e){
+  $('#friend-active').on('click', function (e) {
     $('.actives').toggleClass('hide');
   })
 
- //**********************************+ fin de funciones para home
+  //**********************************+ fin de funciones para home
 });
